@@ -2,10 +2,17 @@ import React from "react";
 import "./card.css";
 import "./App.css";
 import { Link, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Card = ({ sightings }) => {
   console.log(sightings);
   let [searchParams, setSearchParams] = useSearchParams();
+
+  const navigate = useNavigate();
+
+  const logout = () => {
+    navigate("/");
+  };
 
   return (
     <div className="App">
@@ -34,7 +41,7 @@ const Card = ({ sightings }) => {
             <div className="container">
               <Link
                 style={{ display: "block", margin: "1rem 0" }}
-                to={`/sightings/${index}`}
+                to={`/sightings/${index + 1}`}
                 key={sighting.id}
               >
                 <div>
@@ -50,7 +57,7 @@ const Card = ({ sightings }) => {
             </div>
           ))}
       </div>
-      <button>Logout</button>
+      <button onClick={logout}>Logout</button>
     </div>
   );
 };

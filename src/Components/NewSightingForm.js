@@ -1,13 +1,16 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BACKEND_URL } from "../constant";
+import Select from "react-select";
 
 const NewSightingform = () => {
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const navigate = useNavigate();
+  const [allCategories, setAllCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
   const handleChange = (event) => {
     switch (event.target.name) {
@@ -28,23 +31,56 @@ const NewSightingform = () => {
     // Prevent default form redirect on submission
     event.preventDefault();
     console.log(event);
+    const selectedCategoryIds = selectedCategories.map(({ value }) => value);
 
     // Send request to create new sighting in backend
     axios
       .post(`${BACKEND_URL}/sightings`, {
         date,
         location,
+        selectedCategoryIds,
         notes,
       })
       .then((res) => {
         // Clear form state
         setDate("");
         setLocation("");
+        setSelectedCategories([]);
         setNotes("");
 
         // Navigate to sighting-specific page after submitting form
         navigate("/sightings");
       });
+  };
+
+  const logout = () => {
+    navigate("/");
+  };
+
+  useEffect(() => {
+    axios.get(`${BACKEND_URL}/categories`).then((response) => {
+      setAllCategories(response.data);
+    });
+    // Only run this effect on component mount
+  }, []);
+
+  const categoryOptions = allCategories.map((category) => ({
+    // value is what we store
+    value: category.id,
+    // label is what we display
+    label: category.name,
+  }));
+
+  // Make text black in Select field
+  const selectFieldStyles = {
+    option: (provided) => ({
+      ...provided,
+      color: "black",
+    }),
+  };
+
+  const handleSelectChange = (categories) => {
+    setSelectedCategories(categories);
   };
 
   return (
@@ -71,6 +107,15 @@ const NewSightingform = () => {
         />
         <p className="text-muted">WHERE?</p>
       </div>
+      <Select
+        isMulti
+        styles={selectFieldStyles}
+        options={categoryOptions}
+        value={selectedCategories}
+        onChange={handleSelectChange}
+        size="small"
+      />
+      <br />
       <div>
         <label>Notes</label>
         <input
@@ -87,6 +132,8 @@ const NewSightingform = () => {
       <button variant="primary" type="submit">
         Submit
       </button>
+
+      <button onClick={logout}>Logout</button>
     </form>
   );
 };
